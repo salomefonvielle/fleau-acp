@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fléau de la dimension et ACP</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : une colonne de lecture, trois ateliers empilés, chacun = réglages à gauche, figure à droite (empilés sur téléphone) */
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --fg:#1b2430; --muted:#5b6676; --line:#d9dee6;
+  --accent:#1e5a96; --accent-soft:#dce7f3; --warm:#c86420; --good:#287846;
+  --font-display:"Space Grotesk",system-ui,sans-serif;
+  --font-body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12161c; --surface:#1a2029; --fg:#e6eaf0; --muted:#9aa5b4; --line:#2c3440;
+  --accent:#6fa8dc; --accent-soft:#1f3347; --warm:#e8935a; --good:#5cb880; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161c; --surface:#1a2029; --fg:#e6eaf0; --muted:#9aa5b4; --line:#2c3440;
+  --accent:#6fa8dc; --accent-soft:#1f3347; --warm:#e8935a; --good:#5cb880; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px}
+.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+header h1{font-family:var(--font-display);font-weight:600;font-size:1.9rem;line-height:1.15;margin:0 0 8px;text-wrap:balance}
+header p{margin:0;max-width:68ch;color:var(--muted)}
+nav{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+nav a{font-size:.85rem;color:var(--accent);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--surface)}
+nav a:hover,nav a:focus-visible{border-color:var(--accent);outline:none}
+section.atelier{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:20px;display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px}
+@media (max-width:760px){section.atelier{grid-template-columns:minmax(0,1fr)}}
+.ref{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+h2{font-family:var(--font-display);font-weight:600;font-size:1.25rem;margin:4px 0 8px;text-wrap:balance}
+.intro p{margin:0 0 10px;font-size:.93rem}
+.ctl{display:flex;flex-direction:column;gap:12px;margin-top:6px}
+.ctl label{display:flex;flex-direction:column;gap:6px;font-size:.85rem;color:var(--muted)}
+.ctl label b{color:var(--fg);font-family:var(--font-mono);font-weight:500}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+button,select{font:inherit;font-size:.85rem;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer}
+button:hover,select:hover{border-color:var(--accent)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chk{flex-direction:row!important;align-items:center;gap:8px!important;color:var(--fg)!important}
+.fig{min-width:0;display:flex;flex-direction:column;gap:10px}
+canvas{width:100%;height:auto;display:block;background:var(--bg);border:1px solid var(--line);border-radius:6px}
+.stats{display:flex;flex-wrap:wrap;gap:18px;font-size:.85rem;color:var(--muted)}
+.stats span b{font-family:var(--font-mono);font-weight:500;color:var(--fg);font-variant-numeric:tabular-nums}
+.duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+@media (max-width:560px){.duo{grid-template-columns:minmax(0,1fr)}}
+.cap{font-size:.8rem;color:var(--muted);margin:0}
+footer{font-size:.8rem;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Fléau de la dimension et ACP</h1>
+  <p>Trois simulations qui accompagnent la fiche pédagogique de Salomé Fonvielle et Victor Letournel. Chaque atelier renvoie au résultat de la fiche qu'il illustre ; les calculs se font dans votre navigateur.</p>
+  <nav><a href="#distances">1. Concentration des distances</a><a href="#acp2d">2. L'ACP en deux dimensions</a><a href="#hitters">3. ACP des joueurs de baseball</a></nav>
+</header>
+
+<section class="atelier" id="distances">
+  <div class="intro">
+    <div class="ref">Fiche · proposition 2</div>
+    <h2>Concentration des distances</h2>
+    <p>On tire 500 points uniformes dans le cube [0,1]<sup>d</sup> et un point de requête, puis on trace la distance de chaque point à la requête, divisée par la distance moyenne.</p>
+    <p>Augmentez d : l'histogramme se resserre autour de 1. Tous les points finissent presque à la même distance.</p>
+    <div class="ctl">
+      <label for="dSlider"><span>Dimension d : <b id="dVal">2</b></span><input id="dSlider" type="range" min="0" max="9" step="1" value="1"></label>
+      <div class="row"><button id="dRedraw" type="button">Nouveau tirage</button></div>
+    </div>
+  </div>
+  <div class="fig">
+    <canvas id="cDist" width="720" height="340" aria-label="Histogramme des distances relatives"></canvas>
+    <div class="stats">
+      <span>(D<sub>max</sub> − D<sub>min</sub>) / D<sub>min</sub> : <b id="sRatio">–</b></span>
+      <span>écart-type relatif de D² : <b id="sRel">–</b> (théorie √(7/5d) = <b id="sTh">–</b>)</span>
+    </div>
+  </div>
+</section>
+
+<section class="atelier" id="acp2d">
+  <div class="intro">
+    <div class="ref">Fiche · exemple 5, théorème 6, section 5</div>
+    <h2>L'ACP en deux dimensions</h2>
+    <p>Les flèches sont les axes principaux, de longueur proportionnelle à √λ. En pointillé, la projection de chaque point sur le premier axe : l'ACP choisit l'axe qui rend ces segments les plus courts.</p>
+    <div class="ctl">
+      <label for="rho"><span>Corrélation entre X₁ et X₂ : <b id="rhoVal">0,80</b></span><input id="rho" type="range" min="-0.95" max="0.95" step="0.05" value="0.8"></label>
+      <label for="unit"><span>Unité de X₂ (facteur d'échelle) : <b id="unitVal">×1</b></span><input id="unit" type="range" min="-2" max="2" step="0.1" value="0"></label>
+      <label class="chk" for="reduce"><input id="reduce" type="checkbox"> Réduire les variables</label>
+      <label class="chk" for="proj"><input id="proj" type="checkbox" checked> Montrer les projections</label>
+      <div class="row"><button id="preCloud" type="button">Nuage gaussien</button><button id="preCircle" type="button">Points sur un cercle</button></div>
+    </div>
+  </div>
+  <div class="fig">
+    <canvas id="c2d" width="720" height="420" aria-label="Nuage de points et axes principaux"></canvas>
+    <div class="stats">
+      <span>λ₁ = <b id="l1">–</b></span><span>λ₂ = <b id="l2">–</b></span><span>PVE de Z₁ : <b id="pve1">–</b></span>
+    </div>
+    <p class="cap" id="msg2d"></p>
+  </div>
+</section>
+
+<section class="atelier" id="hitters">
+  <div class="intro">
+    <div class="ref">Fiche · section 4</div>
+    <h2>ACP des joueurs de baseball</h2>
+    <p>263 joueurs du jeu Hitters, 19 variables réduites. À gauche, les joueurs colorés par salaire ; à droite, le cercle des corrélations pour les mêmes axes.</p>
+    <p>Sur le plan (Z₁, Z₂), le salaire croît de gauche à droite : Z₁ résume l'ancienneté.</p>
+    <div class="ctl">
+      <label for="axA">Axe horizontal<select id="axA"></select></label>
+      <label for="axB">Axe vertical<select id="axB"></select></label>
+    </div>
+  </div>
+  <div class="fig">
+    <div class="duo">
+      <canvas id="cInd" width="460" height="420" aria-label="Scores des joueurs"></canvas>
+      <canvas id="cCor" width="460" height="420" aria-label="Cercle des corrélations"></canvas>
+    </div>
+    <div class="stats"><span>Variance du plan : <b id="pvePlan">–</b></span><span>Couleur : salaire 1987 (k$, échelle log)</span></div>
+    <p class="cap">Une flèche courte signale une variable mal représentée dans ce plan : sa position ne permet aucune conclusion.</p>
+  </div>
+</section>
+
+<footer>Données : jeu Hitters, <em>An Introduction to Statistical Learning</em> (James, Witten, Hastie, Tibshirani, Taylor, 2023). Calculs de l'ACP faits en Python (scikit-learn) ; les deux premiers ateliers calculent tout en direct.</footer>
+</div>
+
+<script>
+const H = {"scores":[[-0.01,-1.871,1.265,-0.935,1.11],[0.411,2.429,-0.909,-0.264,1.232],[3.467,-0.826,0.555,-1.617,-0.857],[-2.558,0.231,0.52,-2.176,-0.82],[1.028,1.574,1.331,3.494,0.983],[-3.981,-1.507,-0.155,0.37,-1.209],[-3.452,-0.6,-0.626,2.0,0.807],[-3.432,-0.114,2.0,0.768,1.016],[3.9,-1.948,-1.82,-0.027,-1.137],[3.175,2.392,0.794,2.569,-0.947],[-2.168,-1.864,1.081,-0.576,0.935],[-0.933,0.436,0.631,-1.598,-0.996],[-2.275,-1.667,-0.923,1.44,-1.259],[-1.046,-2.685,0.96,-0.518,-1.12],[5.656,-0.402,2.182,0.202,0.982],[-3.577,-1.223,-0.597,2.074,0.831],[-3.263,-2.479,0.153,-1.285,0.892],[-1.751,1.323,0.343,-2.147,-1.036],[-2.153,0.916,-0.521,-1.047,0.823],[0.084,0.903,0.582,-2.127,1.04],[5.971,0.442,0.055,0.754,-0.499],[0.785,1.695,-1.115,-0.114,-1.193],[-2.055,-1.702,0.645,-1.147,-1.122],[-0.084,0.465,1.46,-1.071,1.218],[0.165,1.92,2.548,0.366,0.843],[4.621,0.418,-1.524,-0.344,0.894],[-2.521,0.105,0.502,-1.383,0.894],[0.355,3.397,0.282,2.057,-0.937],[-2.593,-1.583,-1.608,0.493,0.943],[2.747,-2.051,2.537,1.17,1.093],[-3.531,-1.002,0.66,-1.2,1.005],[-3.561,-1.191,-1.593,0.297,-1.142],[-3.016,-1.329,-1.987,0.077,-1.101],[-2.492,-1.129,-1.531,0.364,-1.118],[-1.871,0.988,1.781,0.156,0.947],[-2.729,-1.24,-1.945,0.386,-1.157],[0.932,1.309,0.988,-1.628,0.976],[4.277,-2.569,-1.291,0.623,1.111],[-3.609,-1.311,0.343,-1.342,-1.171],[2.485,0.904,-1.145,0.773,0.925],[2.468,-1.61,-1.307,0.381,-0.993],[-1.414,0.435,0.023,-1.863,1.031],[-2.268,-1.65,0.266,-1.429,0.861],[-0.757,-2.002,1.417,0.173,0.903],[2.633,3.23,0.116,1.674,-0.936],[-1.702,1.793,-1.732,0.094,-0.885],[1.327,-4.784,1.113,-0.127,-1.169],[-3.24,-1.14,-0.587,2.031,0.815],[-3.275,-1.53,1.312,0.034,0.813],[6.899,-0.664,-1.909,-0.299,-0.957],[-3.295,-1.169,-1.806,0.452,0.803],[-0.64,3.087,-0.237,1.612,-0.896],[2.933,-3.834,2.272,0.98,0.88],[4.152,0.319,-0.769,1.17,1.103],[7.964,-1.045,-1.192,-0.601,-0.78],[6.652,-0.103,-1.41,-0.388,-0.967],[-0.188,-0.293,0.744,1.024,-1.055],[-1.942,-0.337,-0.516,-0.539,0.791],[-0.368,0.061,-1.811,0.055,0.902],[-2.421,-0.141,-0.784,1.605,0.812],[2.639,-3.492,1.376,-0.22,-1.177],[2.824,4.989,-1.37,-1.663,-0.45],[4.763,0.665,0.585,-2.034,1.167],[1.349,-1.612,-1.577,0.154,0.821],[5.98,0.555,0.821,-1.659,1.296],[-2.116,0.346,-2.166,-0.431,-1.117],[2.065,-4.429,-1.718,0.685,0.85],[-0.969,2.044,0.091,2.114,0.971],[-1.718,-0.229,-1.764,-0.044,1.054],[0.927,1.779,0.203,-2.43,-0.886],[-2.921,0.717,-0.233,2.027,-1.014],[-0.359,2.895,-1.943,-0.514,1.006],[-0.266,-0.256,1.184,-0.406,0.909],[6.962,-0.168,-1.355,-0.238,-0.882],[-0.491,2.167,0.127,-2.37,1.033],[-0.478,0.016,0.415,-1.686,0.943],[5.132,0.402,-0.497,-0.119,-0.6],[-2.431,-1.241,-0.939,1.475,-1.199],[3.605,0.966,0.05,1.991,1.098],[1.716,3.697,-1.697,-0.499,-0.796],[-3.791,-0.992,-1.383,0.921,-1.099],[5.162,-0.728,0.034,1.914,0.955],[-1.092,-0.237,-0.628,-1.177,1.154],[5.251,-0.021,0.999,-2.174,-0.578],[0.586,3.951,0.819,-2.899,1.546],[2.093,3.622,-0.298,1.523,1.205],[-1.585,2.226,0.489,2.72,1.054],[3.676,-3.403,-1.437,0.835,0.991],[0.174,-0.262,3.149,1.471,0.932],[-1.611,-0.645,-0.576,1.774,-1.117],[4.618,-2.804,1.111,-0.899,-0.951],[5.958,-4.145,1.983,0.617,1.122],[-0.215,2.048,-1.176,-0.051,0.841],[-1.188,-0.225,-0.607,-0.754,-1.151],[1.126,-0.741,3.139,1.645,1.002],[-1.105,-0.295,-1.657,-0.176,1.114],[0.259,-0.764,-1.609,0.268,0.836],[0.371,1.578,0.595,-1.941,-0.909],[2.224,1.277,-1.641,-0.157,1.098],[-0.427,-0.273,1.652,0.05,-0.943],[-2.326,-0.797,1.559,0.09,-0.983],[3.241,-4.624,-1.442,1.128,0.831],[-2.541,0.931,0.333,2.64,0.875],[-3.165,-2.442,0.15,-1.251,0.832],[-3.715,-1.997,0.255,-1.293,-1.17],[2.608,3.512,-2.309,-1.454,-0.796],[0.99,-1.342,-0.569,1.432,-1.095],[-2.088,1.068,-0.095,-0.53,0.8],[0.344,4.107,-1.775,-0.677,1.214],[1.142,4.092,-2.003,-0.796,-0.853],[1.565,-3.179,0.828,-1.497,-0.921],[4.715,-2.453,1.238,-0.881,0.959],[0.76,1.386,0.97,-2.04,-0.612],[-1.217,-2.864,-1.987,0.422,-1.229],[0.464,2.699,0.409,2.272,-0.979],[0.576,0.186,0.085,2.145,-1.059],[0.991,-2.702,-1.897,0.381,-1.199],[-3.651,-1.501,-1.907,0.575,0.719],[-3.068,-0.515,0.305,-1.552,0.789],[-0.407,-1.647,0.699,-0.943,0.91],[1.025,1.674,1.93,0.033,-0.802],[-2.187,0.211,-1.631,0.27,0.767],[0.648,-2.718,0.919,-0.813,-1.127],[0.397,3.594,-0.718,1.204,1.128],[0.715,1.803,2.302,0.134,-1.074],[-3.998,-1.923,-0.77,-0.534,0.859],[7.036,0.578,-1.081,0.034,-0.801],[-0.28,-2.287,0.75,1.402,0.83],[-2.293,0.255,0.847,-1.401,-0.799],[0.027,2.949,2.878,0.991,-0.79],[-1.474,0.175,-1.73,0.156,-1.054],[-2.977,-0.691,-1.821,0.297,0.864],[2.131,-1.543,0.038,-0.626,1.064],[-2.022,1.194,2.593,0.809,0.908],[-1.022,-3.463,0.345,-0.974,0.807],[0.074,2.23,0.464,-1.94,1.072],[-3.692,-1.304,0.175,-1.369,0.815],[1.887,1.314,-2.181,-0.865,-0.995],[3.727,-1.132,-0.299,-0.385,-1.029],[5.433,0.661,1.86,-1.956,-0.764],[2.424,2.915,-1.193,-1.019,1.458],[-0.321,-2.602,0.942,-0.578,0.899],[0.776,2.727,0.425,-2.263,1.131],[-2.552,0.341,0.637,-1.272,-1.042],[1.369,0.864,0.772,-1.613,-1.019],[0.748,0.294,1.982,0.023,0.732],[-0.258,0.984,-2.426,-0.803,0.779],[1.267,4.258,-1.866,-0.788,1.156],[-3.601,-0.446,1.736,0.323,0.873],[1.662,1.177,1.051,-2.561,-0.571],[-1.606,1.208,0.529,-1.938,-1.129],[0.549,-2.397,-1.568,0.533,-1.125],[1.924,-0.41,-1.365,0.34,-1.13],[-2.805,-1.666,0.374,-1.251,0.934],[2.35,1.901,-1.509,-0.453,-0.938],[2.029,-1.035,-0.557,-0.977,-0.771],[4.057,-0.484,-2.125,-0.283,1.0],[-1.884,0.224,-2.395,-0.344,-1.098],[3.287,1.772,0.167,1.796,-1.029],[-3.625,-1.21,0.341,-1.547,0.848],[0.092,3.26,0.587,2.157,-1.145],[0.11,1.209,-1.517,0.15,1.025],[-3.356,-1.06,0.076,-1.72,-1.018],[-2.466,0.796,2.546,1.088,1.04],[1.759,-0.026,-0.713,-0.872,-1.124],[-0.286,1.416,-1.737,-0.143,-0.982],[-0.983,-1.531,-0.087,0.031,-1.002],[-3.834,-1.314,-1.9,0.481,0.766],[-3.148,-0.671,0.798,-1.41,-0.992],[-0.896,-0.689,0.241,-1.52,1.037],[-0.292,2.852,-0.549,1.283,-0.883],[-2.862,-0.614,-1.572,0.441,0.965],[-5.009,-2.953,0.975,-0.025,-1.17],[-1.117,-0.228,1.669,-0.937,1.111],[-2.77,-0.527,-1.625,0.118,0.98],[-2.992,-0.855,0.33,-1.564,-1.113],[-0.884,2.156,0.988,-1.593,-1.058],[-0.398,-0.553,0.757,-1.282,-1.059],[-2.368,-1.288,0.376,-1.305,0.907],[-1.266,0.043,-1.594,0.164,-1.131],[-1.984,2.038,0.815,3.17,0.983],[-0.321,2.762,-1.805,-0.586,0.88],[1.42,0.65,3.226,1.161,-1.183],[-0.855,0.346,1.179,-1.39,1.182],[0.068,1.996,-1.677,-0.416,0.776],[1.755,-2.349,2.351,1.061,1.017],[-0.488,3.336,-1.729,-0.247,1.104],[1.286,-0.02,-0.25,1.812,-1.094],[7.791,-7.927,2.464,0.748,0.916],[-2.409,-1.232,-1.746,0.364,-1.173],[-0.375,1.213,-0.788,0.24,-0.858],[-3.177,-0.457,1.757,0.293,-1.128],[0.51,-2.537,-1.098,1.285,0.729],[-1.399,-0.097,-1.708,0.205,0.818],[-1.352,-2.375,-1.377,0.685,-1.075],[4.399,-3.963,0.249,0.65,-1.058],[-0.158,2.816,-2.117,-0.985,-0.874],[1.052,-1.624,-1.087,0.378,-0.941],[-0.238,-0.394,-1.533,0.137,-1.115],[4.049,2.402,-1.42,-0.678,-1.028],[9.16,-4.108,-1.5,0.308,0.881],[-0.547,-0.244,-2.415,-0.331,0.918],[1.23,0.415,0.921,1.042,-0.978],[-2.518,-1.073,-1.974,0.277,-1.222],[0.391,-3.169,-1.52,0.74,-1.168],[-0.359,-0.369,-1.058,1.063,-1.181],[0.272,0.813,3.098,1.283,1.034],[-3.335,-0.057,-0.66,1.637,-1.135],[-0.576,0.509,3.237,1.932,1.09],[-4.253,-2.339,0.61,-0.829,-1.056],[-1.955,-0.748,0.417,-1.721,-1.192],[1.199,1.88,2.172,0.054,-0.97],[-2.542,0.191,2.415,0.814,-1.068],[-3.191,-1.051,1.044,-0.376,-1.065],[-2.224,0.917,-1.95,-0.04,0.965],[3.239,-1.107,-1.77,0.054,0.807],[-1.842,2.465,2.585,0.784,0.966],[-1.349,-1.675,-0.666,1.92,0.815],[4.355,-0.859,-1.008,0.306,-1.113],[0.662,2.576,-0.986,-0.466,1.611],[-3.398,-1.045,-1.863,0.279,0.869],[-0.496,3.169,1.762,-1.879,-0.505],[-1.664,1.66,-1.004,1.092,0.962],[-1.339,3.146,3.226,1.442,-0.692],[-0.584,2.088,0.26,2.265,0.808],[6.139,-1.711,1.37,-1.601,1.603],[-2.201,1.172,2.943,1.084,-1.064],[-2.075,1.428,-0.437,1.522,0.829],[-1.049,1.685,0.431,2.473,0.832],[0.835,2.58,2.985,0.809,0.942],[1.68,2.58,0.466,2.115,-0.956],[-1.225,-1.37,-0.94,1.393,-1.186],[1.534,1.629,-1.695,-0.329,1.078],[-0.109,3.595,0.329,2.111,-1.018],[-1.389,-0.507,1.409,-0.39,0.763],[-3.021,-1.266,0.97,-0.601,-1.197],[0.782,2.391,0.844,-1.734,0.938],[-2.19,-1.492,-0.749,-0.398,0.828],[0.592,0.865,2.585,0.322,-1.093],[-1.598,1.283,-1.124,1.088,0.963],[-4.8,-2.45,-0.369,-0.223,1.042],[-3.136,-2.228,0.33,-1.25,-1.183],[-2.413,-1.453,-1.844,0.254,0.924],[-0.204,-3.51,-1.316,1.287,0.861],[0.352,1.185,1.964,-0.911,-0.701],[-1.477,1.728,2.758,1.035,-1.016],[-0.63,1.587,-0.288,1.522,0.738],[-0.898,-4.035,0.526,-0.745,0.769],[3.621,-6.447,1.221,0.035,0.977],[-2.285,-0.937,1.293,-0.345,-1.113],[0.547,0.648,1.812,0.017,-0.878],[-1.279,1.675,1.312,-1.193,-1.162],[2.159,3.541,1.521,-2.311,-0.586],[-1.124,-0.879,1.38,-0.326,-1.135],[-1.384,0.335,2.419,0.739,-1.128],[2.002,3.409,0.48,1.746,-1.216],[-2.108,1.463,1.076,-1.748,1.235],[-0.009,4.503,-0.833,-0.618,1.448],[-0.331,0.166,0.776,-1.537,-1.035],[3.246,0.543,1.209,2.754,-1.198],[-1.095,0.751,-0.936,1.072,0.706],[1.978,2.185,-0.282,-0.217,-0.695],[1.833,0.301,-1.055,0.493,0.916]],"logsal":[2.677,2.681,2.699,1.961,2.875,1.845,2.0,1.875,3.041,2.714,2.71,2.74,2.845,2.38,2.889,2.243,2.13,2.0,2.061,2.778,2.89,2.884,2.85,2.875,2.796,2.954,2.041,2.787,2.477,2.929,1.954,1.829,2.255,2.484,2.332,2.394,2.911,2.942,1.845,3.079,2.829,2.618,2.531,2.62,3.13,1.954,2.439,2.362,2.352,2.978,1.875,2.021,2.505,2.929,2.728,2.97,2.929,2.322,2.512,2.439,2.653,3.296,3.279,2.778,3.018,2.041,2.415,2.677,2.635,3.086,1.845,2.161,2.775,3.27,2.477,2.69,3.391,2.574,2.875,3.07,1.845,3.176,2.585,3.285,2.332,2.954,2.19,2.845,2.728,2.559,2.865,2.301,2.602,2.602,2.868,2.699,2.778,2.821,2.978,2.875,2.473,2.512,1.942,2.243,1.954,3.093,2.633,2.0,2.217,2.398,3.114,2.888,3.004,2.439,2.889,2.929,2.562,1.978,2.041,2.0,2.443,1.903,2.778,2.301,2.818,1.875,3.382,2.398,2.19,2.806,2.477,2.041,2.916,2.29,2.653,2.799,1.937,3.114,3.0,3.255,3.117,2.868,2.796,2.097,3.018,2.86,2.477,2.562,1.875,3.073,2.306,2.352,2.72,2.423,2.896,2.903,2.769,2.161,2.623,1.875,2.76,2.892,1.954,2.176,2.845,2.74,2.813,1.833,2.0,2.826,2.243,2.137,3.328,2.942,2.079,2.146,2.322,2.903,2.38,2.544,2.243,2.301,3.288,2.845,2.875,2.653,2.236,3.1,2.875,2.279,2.763,2.114,2.653,2.477,2.398,3.021,2.332,2.602,2.748,3.223,2.688,2.628,2.699,2.398,2.602,2.653,2.875,1.845,2.942,2.279,2.281,2.869,2.398,2.146,1.989,2.869,2.146,2.534,3.0,2.0,1.954,2.301,2.13,2.19,2.677,3.161,2.176,2.021,2.544,1.954,2.724,2.534,2.973,2.544,2.514,2.398,2.869,2.628,2.966,2.267,2.964,2.457,2.389,2.371,3.061,2.204,2.628,2.954,2.699,2.443,2.875,2.204,3.114,2.72,2.74,3.204,2.079,2.217,2.845,2.942,2.585,2.982,3.0],"sal":[475.0,480.0,500.0,92.0,750.0,70.0,100.0,75.0,1100.0,517.0,512.0,550.0,700.0,240.0,775.0,175.0,135.0,100.0,115.0,600.0,777.0,765.0,708.0,750.0,625.0,900.0,110.0,612.0,300.0,850.0,90.0,68.0,180.0,305.0,215.0,248.0,815.0,875.0,70.0,1200.0,675.0,415.0,340.0,417.0,1350.0,90.0,275.0,230.0,225.0,950.0,75.0,105.0,320.0,850.0,535.0,933.0,850.0,210.0,325.0,275.0,450.0,1975.0,1900.0,600.0,1042.0,110.0,260.0,475.0,432.0,1220.0,70.0,145.0,595.0,1861.0,300.0,490.0,2460.0,375.0,750.0,1175.0,70.0,1500.0,385.0,1926.0,215.0,900.0,155.0,700.0,535.0,362.0,733.0,200.0,400.0,400.0,738.0,500.0,600.0,662.0,950.0,750.0,298.0,325.0,88.0,175.0,90.0,1238.0,430.0,100.0,165.0,250.0,1300.0,773.0,1008.0,275.0,775.0,850.0,365.0,95.0,110.0,100.0,278.0,80.0,600.0,200.0,657.0,75.0,2412.0,250.0,155.0,640.0,300.0,110.0,825.0,195.0,450.0,630.0,86.0,1300.0,1000.0,1800.0,1310.0,738.0,625.0,125.0,1043.0,725.0,300.0,365.0,75.0,1183.0,202.0,225.0,525.0,265.0,788.0,800.0,588.0,145.0,420.0,75.0,575.0,780.0,90.0,150.0,700.0,550.0,650.0,68.0,100.0,670.0,175.0,137.0,2127.0,875.0,120.0,140.0,210.0,800.0,240.0,350.0,175.0,200.0,1940.0,700.0,750.0,450.0,172.0,1260.0,750.0,190.0,580.0,130.0,450.0,300.0,250.0,1050.0,215.0,400.0,560.0,1670.0,488.0,425.0,500.0,250.0,400.0,450.0,750.0,70.0,875.0,190.0,191.0,740.0,250.0,140.0,98.0,740.0,140.0,342.0,1000.0,100.0,90.0,200.0,135.0,155.0,475.0,1450.0,150.0,105.0,350.0,90.0,530.0,342.0,940.0,350.0,327.0,250.0,740.0,425.0,925.0,185.0,920.0,287.0,245.0,235.0,1150.0,160.0,425.0,900.0,500.0,278.0,750.0,160.0,1300.0,525.0,550.0,1600.0,120.0,165.0,700.0,875.0,385.0,960.0,1000.0],"names":["AtBat","Hits","HmRun","Runs","RBI","Walks","Years","CAtBat","CHits","CHmRun","CRuns","CRBI","CWalks","PutOuts","Assists","Errors","League_N","Division_W","NewLeague_N"],"corr":[[0.536,0.783,0.127,0.04,0.028],[0.529,0.77,0.106,0.022,-0.005],[0.552,0.484,-0.309,-0.295,0.078],[0.536,0.771,-0.025,-0.062,-0.039],[0.636,0.642,-0.104,-0.174,0.024],[0.565,0.469,0.065,-0.163,-0.033],[0.764,-0.536,0.049,0.119,-0.01],[0.893,-0.394,0.119,0.114,0.012],[0.894,-0.373,0.123,0.105,0.009],[0.862,-0.258,-0.123,-0.093,0.033],[0.914,-0.352,0.076,0.086,-0.018],[0.92,-0.343,0.021,0.008,0.028],[0.856,-0.393,0.06,0.038,-0.034],[0.21,0.318,0.073,-0.359,0.106],[-0.002,0.344,0.568,0.655,-0.011],[-0.021,0.41,0.547,0.527,0.055],[-0.147,-0.194,0.782,-0.495,0.012],[-0.07,-0.075,-0.023,0.053,0.987],[-0.113,-0.158,0.777,-0.522,0.014]],"pve":[0.3831,0.2184,0.1069,0.0819,0.0526],"lam":[7.307,4.166,2.038,1.563,1.002]};
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmt = (x,k=2) => x.toFixed(k).replace('.',',');
+// keep original aspect ratios
+for(const id of ['cDist','c2d','cInd','cCor']){const c=document.getElementById(id);c._ar=c.height/c.width;}
+function ctx(c){const w=c.getBoundingClientRect().width,h=w*c._ar,dpr=window.devicePixelRatio||1;
+  c.style.height=h+'px';c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);const g=c.getContext('2d');g.scale(dpr,dpr);return [g,w,h];}
+
+// ---------- générateur aléatoire reproductible
+function rng(seed){let s=seed>>>0;return()=>{s=(s+0x6D2B79F5)>>>0;let t=s;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0,v=0;while(u===0)u=r();v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+
+// ---------- 1. distances
+const DIMS=[1,2,5,10,20,50,100,200,500,1000]; let seedD=7;
+function drawDist(){
+  const d=DIMS[+dSlider.value]; dVal.textContent=d;
+  const r=rng(seedD*1000+d), N=500, q=Array.from({length:d},r), D=new Float64Array(N);
+  for(let i=0;i<N;i++){let s=0;for(let j=0;j<d;j++){const t=r()-q[j];s+=t*t;}D[i]=Math.sqrt(s);}
+  let mn=Infinity,mx=0,mean=0;for(const x of D){mn=Math.min(mn,x);mx=Math.max(mx,x);mean+=x;}mean/=N;
+  sRatio.textContent=fmt((mx-mn)/mn,2);
+  // écart-type relatif de D² entre paires indépendantes
+  const r2=rng(seedD*77+d);let a=[];for(let k=0;k<1500;k++){let s=0;for(let j=0;j<d;j++){const t=r2()-r2();s+=t*t;}a.push(s);}
+  const m=a.reduce((x,y)=>x+y,0)/a.length, sd=Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/a.length);
+  sRel.textContent=fmt(sd/m,3); sTh.textContent=fmt(Math.sqrt(7/(5*d)),3);
+  const [g,W,Hh]=ctx(cDist); const L=46,R=12,T=14,B=34, pw=W-L-R, ph=Hh-T-B;
+  const bins=60, lo=0, hi=2, cnt=new Array(bins).fill(0);
+  for(const x of D){const v=x/mean;const b=Math.min(bins-1,Math.max(0,Math.floor((v-lo)/(hi-lo)*bins)));cnt[b]++;}
+  const cmax=Math.max(...cnt);
+  g.clearRect(0,0,W,Hh); g.font='11px '+css('--font-mono'); g.fillStyle=css('--muted'); g.strokeStyle=css('--line'); g.lineWidth=1;
+  for(let k=0;k<=4;k++){const x=L+pw*k/4;g.beginPath();g.moveTo(x,T);g.lineTo(x,T+ph);g.stroke();g.textAlign='center';g.fillText(fmt(lo+(hi-lo)*k/4,1),x,T+ph+16);}
+  g.textAlign='center';g.fillText('distance à la requête / distance moyenne',L+pw/2,Hh-4);
+  g.save();g.translate(12,T+ph/2);g.rotate(-Math.PI/2);g.fillText('nombre de points',0,0);g.restore();
+  g.fillStyle=css('--accent');
+  for(let b=0;b<bins;b++){const h=ph*cnt[b]/cmax;g.fillRect(L+pw*b/bins+0.5,T+ph-h,pw/bins-1,h);}
+  g.strokeStyle=css('--warm');g.setLineDash([4,4]);g.beginPath();const x1=L+pw*(1-lo)/(hi-lo);g.moveTo(x1,T);g.lineTo(x1,T+ph);g.stroke();g.setLineDash([]);
+}
+dSlider.addEventListener('input',drawDist); dRedraw.addEventListener('click',()=>{seedD++;drawDist();});
+
+// ---------- 2. ACP 2D
+let mode='cloud', base=null;
+function makeBase(){const r=rng(11);base=[];for(let i=0;i<160;i++)base.push([gauss(r),gauss(r)]);}
+function pts2d(){
+  const k=Math.pow(2,+unit.value), rho=+rho_.value; let P;
+  if(mode==='circle'){const r=rng(5);P=[];for(let i=0;i<160;i++){const t=2*Math.PI*r();P.push([Math.cos(t)*1.6,Math.sin(t)*1.6]);}}
+  else{const c=Math.sqrt(1-rho*rho);P=base.map(([u,v])=>[u,rho*u+c*v]);}
+  P=P.map(([x,y])=>[x,y*k]);
+  let mx=0,my=0;for(const p of P){mx+=p[0];my+=p[1];}mx/=P.length;my/=P.length;P=P.map(([x,y])=>[x-mx,y-my]);
+  if(reduce.checked){let sx=0,sy=0;for(const[x,y]of P){sx+=x*x;sy+=y*y;}sx=Math.sqrt(sx/(P.length-1));sy=Math.sqrt(sy/(P.length-1));P=P.map(([x,y])=>[x/sx,y/sy]);}
+  return P;}
+function eig2(a,b,c){const tr=a+c,det=a*c-b*b,disc=Math.sqrt(Math.max(0,tr*tr/4-det));const l1=tr/2+disc,l2=tr/2-disc;
+  let v=Math.abs(b)>1e-12?[l1-c,b]:(a>=c?[1,0]:[0,1]);const n=Math.hypot(v[0],v[1]);v=[v[0]/n,v[1]/n];return[l1,l2,v];}
+function draw2d(){
+  rhoVal.textContent=fmt(+rho_.value,2); const k=Math.pow(2,+unit.value); unitVal.textContent='×'+(k>=1?fmt(k,1):fmt(k,2));
+  rho_.disabled=(mode==='circle');
+  const P=pts2d(), n=P.length; let a=0,b=0,c=0;for(const[x,y]of P){a+=x*x;b+=x*y;c+=y*y;}a/=n-1;b/=n-1;c/=n-1;
+  const [l1,l2,v]=eig2(a,b,c), w=[-v[1],v[0]];
+  l1El.textContent=fmt(l1,2); l2El.textContent=fmt(l2,2); pve1.textContent=fmt(100*l1/(l1+l2),1)+' %';
+  msg2d.textContent = mode==='circle' ? "Points sur un cercle : dimension intrinsèque 1, mais λ₁ ≈ λ₂. L'ACP ne voit aucune direction privilégiée, car elle ne capte que des structures linéaires."
+    : (!reduce.checked && Math.abs(+unit.value)>0.9 ? "Sans réduction, changer l'unité de X₂ fait tourner les axes : l'ACP privilégie la variable la plus dispersée, quelle que soit son importance." : "Plus la corrélation est forte, plus Z₁ concentre la variance : une seule direction suffit presque à décrire le nuage.");
+  const [g,W,Hh]=ctx(c2d); g.clearRect(0,0,W,Hh);
+  let ext=0;for(const[x,y]of P)ext=Math.max(ext,Math.abs(x),Math.abs(y));ext=Math.max(ext,2*Math.sqrt(l1))*1.08;
+  const s=Math.min(W,Hh)/2/ext, cx=W/2, cy=Hh/2, X=x=>cx+x*s, Y=y=>cy-y*s;
+  g.strokeStyle=css('--line');g.lineWidth=1;g.beginPath();g.moveTo(0,cy);g.lineTo(W,cy);g.moveTo(cx,0);g.lineTo(cx,Hh);g.stroke();
+  g.fillStyle=css('--muted');g.font='11px '+css('--font-mono');g.textAlign='right';g.fillText('X₁',W-6,cy-6);g.textAlign='left';g.fillText('X₂',cx+6,12);
+  if(proj.checked){g.strokeStyle=css('--warm');g.globalAlpha=.45;g.setLineDash([2,3]);g.beginPath();
+    for(const[x,y]of P){const t=x*v[0]+y*v[1];g.moveTo(X(x),Y(y));g.lineTo(X(t*v[0]),Y(t*v[1]));}g.stroke();g.setLineDash([]);g.globalAlpha=1;}
+  g.fillStyle=css('--fg');g.globalAlpha=.7;for(const[x,y]of P){g.beginPath();g.arc(X(x),Y(y),2.4,0,7);g.fill();}g.globalAlpha=1;
+  const arrow=(u,len,col,lab)=>{const x2=X(u[0]*len),y2=Y(u[1]*len);g.strokeStyle=col;g.fillStyle=col;g.lineWidth=2.5;g.beginPath();g.moveTo(cx,cy);g.lineTo(x2,y2);g.stroke();
+    const ang=Math.atan2(y2-cy,x2-cx);g.beginPath();g.moveTo(x2,y2);g.lineTo(x2-10*Math.cos(ang-.35),y2-10*Math.sin(ang-.35));g.lineTo(x2-10*Math.cos(ang+.35),y2-10*Math.sin(ang+.35));g.fill();
+    g.font='600 13px '+css('--font-body');g.textAlign='left';g.fillText(lab,x2+6,y2-6);};
+  arrow(v,2*Math.sqrt(l1),css('--accent'),'Z₁'); arrow(w,2*Math.sqrt(Math.max(l2,0)),css('--good'),'Z₂');
+}
+const rho_=document.getElementById('rho'), l1El=document.getElementById('l1'), l2El=document.getElementById('l2');
+[rho_,unit,reduce,proj].forEach(e=>e.addEventListener('input',draw2d));
+preCloud.addEventListener('click',()=>{mode='cloud';draw2d();}); preCircle.addEventListener('click',()=>{mode='circle';draw2d();});
+
+// ---------- 3. Hitters
+for(const sel of [axA,axB]) for(let m=0;m<5;m++){const o=document.createElement('option');o.value=m;o.textContent='Z'+(m+1)+' ('+fmt(100*H.pve[m],1)+' %)';sel.appendChild(o);}
+axA.value=0; axB.value=1;
+const GROUP=n=>/^C|Years/.test(n)?'--warm':(['PutOuts','Assists','Errors'].includes(n)?'--good':(/_/.test(n)?'--muted':'--accent'));
+function colorFor(t){ // t in [0,1] : bleu clair -> bleu -> orange
+  const A=[[120,170,215],[30,90,150],[200,100,30]];const s=t<.5?t*2:(t-.5)*2,[p,q]=t<.5?[A[0],A[1]]:[A[1],A[2]];
+  return `rgb(${p.map((x,i)=>Math.round(x+(q[i]-x)*s)).join(',')})`;}
+function drawHit(){
+  const a=+axA.value,b=+axB.value; pvePlan.textContent=fmt(100*(H.pve[a]+(a===b?0:H.pve[b])),1)+' %';
+  let [g,W,Hh]=ctx(cInd); g.clearRect(0,0,W,Hh);
+  const S=H.scores; let ext=0;for(const z of S)ext=Math.max(ext,Math.abs(z[a]),Math.abs(z[b]));ext*=1.08;
+  const pad=28,s=(Math.min(W,Hh)/2-pad/2)/ext,cx=W/2,cy=Hh/2;
+  g.strokeStyle=css('--line');g.beginPath();g.moveTo(0,cy);g.lineTo(W,cy);g.moveTo(cx,0);g.lineTo(cx,Hh);g.stroke();
+  const ls=H.logsal, lmin=Math.min(...ls), lmax=Math.max(...ls);
+  const idx=[...S.keys()].sort((i,j)=>ls[i]-ls[j]);
+  for(const i of idx){g.fillStyle=colorFor((ls[i]-lmin)/(lmax-lmin));g.beginPath();g.arc(cx+S[i][a]*s,cy-S[i][b]*s,3,0,7);g.fill();}
+  g.fillStyle=css('--muted');g.font='11px '+css('--font-mono');g.textAlign='right';g.fillText('Z'+(a+1),W-6,cy-6);g.textAlign='left';g.fillText('Z'+(b+1),cx+6,12);
+  // légende
+  const lw=110,lx=10,ly=Hh-22;for(let k=0;k<lw;k++){g.fillStyle=colorFor(k/lw);g.fillRect(lx+k,ly,1,8);}
+  g.fillStyle=css('--muted');g.textAlign='left';g.fillText(Math.round(10**lmin)+' k$',lx,ly+20);g.textAlign='right';g.fillText(Math.round(10**lmax)+' k$',lx+lw,ly+20);
+  // cercle
+  [g,W,Hh]=ctx(cCor); g.clearRect(0,0,W,Hh); const R=Math.min(W,Hh)/2-52,ox=W/2,oy=Hh/2;
+  g.strokeStyle=css('--line');g.beginPath();g.arc(ox,oy,R,0,7);g.moveTo(ox-R-8,oy);g.lineTo(ox+R+8,oy);g.moveTo(ox,oy-R-8);g.lineTo(ox,oy+R+8);g.stroke();
+  const items=H.names.map((n,j)=>({n,x:H.corr[j][a],y:H.corr[j][b]}));
+  for(const it of items){const col=css(GROUP(it.n)),x2=ox+it.x*R,y2=oy-it.y*R;g.strokeStyle=col;g.fillStyle=col;g.lineWidth=1.3;g.beginPath();g.moveTo(ox,oy);g.lineTo(x2,y2);g.stroke();
+    const ang=Math.atan2(y2-oy,x2-ox);g.beginPath();g.moveTo(x2,y2);g.lineTo(x2-6*Math.cos(ang-.4),y2-6*Math.sin(ang-.4));g.lineTo(x2-6*Math.cos(ang+.4),y2-6*Math.sin(ang+.4));g.fill();}
+  // étiquettes : on regroupe les flèches presque confondues, et on n'étiquette que les variables bien représentées
+  g.font='10px '+css('--font-mono');
+  const good=items.filter(it=>it.x*it.x+it.y*it.y>0.3), groups=[];
+  for(const it of good){const gr=groups.find(G=>GROUP(G[0].n)===GROUP(it.n)&&Math.hypot(G[0].x-it.x,G[0].y-it.y)<0.14);gr?gr.push(it):groups.push([it]);}
+  const placed=[];
+  for(const G of groups){const mx=G.reduce((s,it)=>s+it.x,0)/G.length,my=G.reduce((s,it)=>s+it.y,0)/G.length,nr=Math.hypot(mx,my)||1;
+    const lines=[];let cur='';for(const it of G){const t=cur?cur+', '+it.n:it.n;if(t.length>16&&cur){lines.push(cur);cur=it.n;}else cur=t;}lines.push(cur);
+    const tw=Math.max(...lines.map(L=>g.measureText(L).width)), th=11*lines.length;
+    const ex=ox+mx*R, ey=oy-my*R;           // pointe de la flèche moyenne
+    let x0=mx>=0?ex+8:ex-8-tw, y0=my>=0?ey-th-2:ey+4;
+    x0=Math.max(4,Math.min(W-4-tw,x0)); y0=Math.max(2,Math.min(Hh-th-2,y0));
+    const hit=(x,y)=>placed.some(p=>x<p[0]+p[2]&&x+tw>p[0]&&y<p[1]+p[3]&&y+th>p[1]);
+    for(let k=0;k<20&&hit(x0,y0);k++){y0+=(my>=0?-6:6);y0=Math.max(2,Math.min(Hh-th-2,y0));}
+    placed.push([x0,y0,tw,th]);g.fillStyle=css(GROUP(G[0].n));g.textAlign='left';
+    lines.forEach((L,k)=>g.fillText(L,x0,y0+9+11*k));}
+}
+[axA,axB].forEach(e=>e.addEventListener('change',drawHit));
+
+function all(){drawDist();draw2d();drawHit();}
+makeBase(); all();
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(all,120);});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',all);
+new MutationObserver(all).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+document.fonts&&document.fonts.ready.then(all);
+</script>
+</body>
+</html>
